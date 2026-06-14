@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c51d2f6f10d3ad440aefeb688d163eb6, type: 3}
+  m_Name: Torch
+  m_EditorClassIdentifier: 
+  sprite: {fileID: -2012120174, guid: 39cad1e936187754dab6ce4bad96bcec, type: 3}
+  type: 0
+  action: 0
+  stackable: 1
+  id: 0
+  item: {fileID: 11400000, guid: 89af9842bcbbeed4fa539f7b4baea43c, type: 2}
+  block: {fileID: 11400000, guid: 89af9842bcbbeed4fa539f7b4baea43c, type: 2}
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  damage: 1
+  range: 0.4
+  angleRange: 100
+  durability: 0
+  slowness: 0

@@ -1,0 +1,215 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+RWTexture2D<float4> Result;
+
+StructuredBuffer<int> shadowNumVertices;
+StructuredBuffer<float2> shadowVertices;
+StructuredBuffer<float> shadowLength;
+StructuredBuffer<float2> shadowPos;
+
+StructuredBuffer<float2> staticLightPos;
+StructuredBuffer<float> staticLightRad;
+StructuredBuffer<float> staticLightIntensity;
+StructuredBuffer<int> lightShadowPair;
+StructuredBuffer<int> shadowNumLight;
+
+StructuredBuffer<float2> movingLightPos;
+StructuredBuffer<float> movingLightRad;
+StructuredBuffer<float> movingLightIntensity;
+
+float2 bottomLeft;
+float2 resolution;
+float camSize;
+
+float2 sunAngle;
+
+float shadowIntensity;
+float sunIntensity;
+float4 sunColor;
+float shadowDivergence;
+float lengthFactor;
+float sizeMultiplier;
+
+int numOfStaticLights;
+int numOfMovingLights;
+int numOfShadows;
+int numOfPair;
+
+float shadowMin;
+float shadowMax;
+
+[numthreads(32,32,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float4 color;
+    float pi = 3.141592653589793238;
+    float2 pos = float2(id.x / resolution.x, id.y / resolution.x);
+    float2 worldPos = pos * camSize * 2 * (resolution.x / resolution.y) + bottomLeft;
+    float alpha = 0;
+
+    int shadowIndex = 0;
+    for (int shadow = 0; shadow < 400; shadow++)
+    {
+        if(shadow >= numOfShadows) break;
+
+        float maxAlpha = 0;
+        float tempAlpha;
+        float2 _shadowPos = shadowPos[shadow];
+        float _shadowLength = shadowLength[shadow];
+        float distanceToCenter = length(worldPos - _shadowPos);
+
+        if(distanceToCenter < _shadowLength * 1.5)
+        {
+            float2 lightDisplacement = normalize(sunAngle) * _shadowLength * lengthFactor;
+            int numOfVertices = shadowNumVertices[shadow];
+            
+            float thisAlpha = shadowIntensity;
+            thisAlpha *= 1 - clamp((distanceToCenter - shadowMin) / (_shadowLength * (1+shadowMax) - shadowMin), 0, 1);
+
+            for(int movingLight = 0; movingLight < 200; movingLight++)
+            {
+                if(movingLight >= numOfMovingLights) break;
+
+                float2 _lightPos = movingLightPos[movingLight];
+                float _lightRad = movingLightRad[movingLight] * sizeMultiplier / 4;
+
+                bool cond1 = abs((_shadowPos.y - _lightPos.y)) > _lightRad;
+                bool cond2 = abs(_shadowPos.x - _lightPos.x) > _lightRad * 2;
+                bool cond3 = abs(worldPos.x - _lightPos.x) > _lightRad * 2;
+                bool cond4 = abs((worldPos.y - _lightPos.y)) > _lightRad;
+
+                if(cond1 || cond2 || cond3 || cond4) continue;
+
+                float _lightIntensity = movingLightIntensity[movingLight];
+                bool isLightened = true;
+
+                
+                float isoDist = sqrt(pow(_lightPos.x - worldPos.x, 2) + pow((_lightPos.y - worldPos.y)*2,2));
+                float invDist = pow(length(isoDist) / 2 / _lightRad, 3);
+                float sunAlpha = thisAlpha * _lightIntensity * clamp(1 - invDist,0,1);
+
+                for(int i = 0; i < numOfVertices; i++)
+                {
+                    half2 a = shadowVertices[shadowIndex + i] + _shadowPos;
+                    half2 b = shadowVertices[shadowIndex + fmod(i+1, shadowNumVertices[shadow])] + _shadowPos;
+                    half2 aProjLight = a + normalize(lerp(_shadowPos, a, shadowDivergence) - _lightPos) * _shadowLength;
+                    half2 bProjLight = b + normalize(lerp(_shadowPos, b, shadowDivergence) - _lightPos) * _shadowLength;
+
+                    half a1 = (worldPos.x - a.x) * (b.y - a.y) - (b.x - a.x) * (worldPos.y - a.y);
+                    half a2 = (worldPos.x - aProjLight.x) * (a.y - aProjLight.y) - (a.x - aProjLight.x) * (worldPos.y - aProjLight.y);
+                    half a3 = (worldPos.x - bProjLight.x) * (aProjLight.y - bProjLight.y) - (aProjLight.x - bProjLight.x) * (worldPos.y - bProjLight.y);
+                    half a4 = (worldPos.x - b.x) * (bProjLight.y - b.y) - (bProjLight.x - b.x) * (worldPos.y - b.y);
+
+                    bool pos = a1 > 0 || a2 > 0 || a3 > 0 || a4 > 0;
+                    bool neg = a1 < 0 || a2 < 0 || a3 < 0 || a4 < 0;
+
+                    if(!(pos && neg))
+                    {
+                        isLightened = false;
+
+                        tempAlpha = max(tempAlpha, sunAlpha * (2.3 - length(sunColor)));
+
+                        break;
+                    }
+                }
+
+                if(isLightened)
+                {
+                    maxAlpha += clamp(sunAlpha,0,1);
+                }
+            }
+
+            int staticLightNumber = 0;
+
+            if(numOfPair > 0)
+            {
+                staticLightNumber = shadowNumLight[shadowIndex];
+            }
+
+            for(int staticLight = 0; staticLight < 200; staticLight++)
+            {
+                if(staticLight >= numOfStaticLights) break;
+
+                float2 _lightPos = staticLightPos[staticLight];
+                float _lightRad = staticLightRad[staticLight] * sizeMultiplier / 4;
+
+                bool cond1 = abs((_shadowPos.y - _lightPos.y)) > _lightRad;
+                bool cond2 = abs(_shadowPos.x - _lightPos.x) > _lightRad * 2;
+                bool cond3 = abs(worldPos.x - _lightPos.x) > _lightRad * 2;
+                bool cond4 = abs((worldPos.y - _lightPos.y)) > _lightRad;
+
+                if(cond1 || cond2 || cond3 || cond4) continue;
+                
+                float _lightIntensity = staticLightIntensity[staticLight];
+                bool isLightened = true;
+
+                float isoDist = sqrt(pow(_lightPos.x - worldPos.x, 2) + pow((_lightPos.y - worldPos.y)*2,2));
+                float invDist = pow(length(isoDist) / 2 / _lightRad, 3);
+                float sunAlpha = thisAlpha * _lightIntensity * clamp(1 - invDist,0,1);
+
+                for(int i = 0; i < numOfVertices; i++)
+                {
+                    half2 a = shadowVertices[shadowIndex + i] + _shadowPos;
+                    half2 b = shadowVertices[shadowIndex + fmod(i+1, shadowNumVertices[shadow])] + _shadowPos;
+                    half2 aProjLight = a + normalize(lerp(_shadowPos, a, shadowDivergence) - _lightPos) * _shadowLength;
+                    half2 bProjLight = b + normalize(lerp(_shadowPos, b, shadowDivergence) - _lightPos) * _shadowLength;
+
+                    half a1 = (worldPos.x - a.x) * (b.y - a.y) - (b.x - a.x) * (worldPos.y - a.y);
+                    half a2 = (worldPos.x - aProjLight.x) * (a.y - aProjLight.y) - (a.x - aProjLight.x) * (worldPos.y - aProjLight.y);
+                    half a3 = (worldPos.x - bProjLight.x) * (aProjLight.y - bProjLight.y) - (aProjLight.x - bProjLight.x) * (worldPos.y - bProjLight.y);
+                    half a4 = (worldPos.x - b.x) * (bProjLight.y - b.y) - (bProjLight.x - b.x) * (worldPos.y - b.y);
+
+                    bool pos = a1 > 0 || a2 > 0 || a3 > 0 || a4 > 0;
+                    bool neg = a1 < 0 || a2 < 0 || a3 < 0 || a4 < 0;
+
+                    if(!(pos && neg))
+                    {
+                        isLightened = false;
+                        tempAlpha = max(tempAlpha, sunAlpha * (2.3 - length(sunColor)));
+                        break;
+                    }
+                }
+
+                if(isLightened)
+                {
+                    maxAlpha += clamp(sunAlpha,0,1);
+                }
+            }
+
+            for(int i = 0; i < numOfVertices; i++)
+            {
+                if(sunIntensity > 0.05)
+                {
+                    half2 a = shadowVertices[shadowIndex + i] + _shadowPos;
+                    half2 b = shadowVertices[shadowIndex + fmod(i+1, shadowNumVertices[shadow])] + _shadowPos;
+                    half2 aProj = a + lightDisplacement;
+                    half2 bProj = b + lightDisplacement;
+
+                    half a1 = (worldPos.x - a.x) * (b.y - a.y) - (b.x - a.x) * (worldPos.y - a.y);
+                    half a2 = (worldPos.x - aProj.x) * (a.y - aProj.y) - (a.x - aProj.x) * (worldPos.y - aProj.y);
+                    half a3 = (worldPos.x - bProj.x) * (aProj.y - bProj.y) - (aProj.x - bProj.x) * (worldPos.y - bProj.y);
+                    half a4 = (worldPos.x - b.x) * (bProj.y - b.y) - (bProj.x - b.x) * (worldPos.y - b.y);
+
+                    bool pos = a1 > 0 || a2 > 0 || a3 > 0 || a4 > 0;
+                    bool neg = a1 < 0 || a2 < 0 || a3 < 0 || a4 < 0;
+
+                    if(!(pos && neg))
+                    {
+                        float sunAlpha = sunIntensity * (1 - clamp((distanceToCenter - shadowMin) / (_shadowLength* lengthFactor*(1+shadowMax) - shadowMin), 0, 1));
+                        tempAlpha = max(tempAlpha, sunAlpha);
+
+                        break;
+                    }
+                }
+            }
+
+            tempAlpha -= maxAlpha;
+            alpha = max(alpha, tempAlpha);
+        }
+
+        shadowIndex += shadowNumVertices[shadow];
+    }
+
+    Result[id.xy] = float4(0,0,0,clamp(alpha,0,1));
+}

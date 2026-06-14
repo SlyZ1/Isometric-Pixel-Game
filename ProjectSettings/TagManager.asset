@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Ground
+  - Water
+  - UI
+  - Tree
+  - Shadow
+  - Player
+  - Loot
+  - Torch
+  - FakeGrass
+  - Enemy
+  - Attack
+  - Rock
+  - EnemyObstacle
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Ground
+    uniqueID: 3771856811
+    locked: 0
+  - name: Grass
+    uniqueID: 833127255
+    locked: 0
+  - name: GrassDeco
+    uniqueID: 1403233221
+    locked: 0
+  - name: Shadow
+    uniqueID: 3113047715
+    locked: 0
+  - name: Default
+    uniqueID: 0
+    locked: 0

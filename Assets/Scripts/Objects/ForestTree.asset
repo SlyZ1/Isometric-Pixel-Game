@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7402582b0e893e438cbe86bfaf39647, type: 3}
+  m_Name: ForestTree
+  m_EditorClassIdentifier: 
+  variations:
+  - prefab: {fileID: 505188371611155566, guid: 6e95e61356366044e99c01e5840bf2d8, type: 3}
+    spriteBased: 1
+    instances:
+    - {fileID: -1404674599, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: 1748167376, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: 1565873979, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -185874298, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    interactable: 0
+    outlines: []
+    colorBased: 1
+    isAdditive: 0
+    isShadowed: 1
+    probability: 1
+    shadowLength: 0.27
+    isDrop: 0
+    drop: {fileID: 11400000, guid: 285912afb02f8ae479250450e98b8082, type: 2}
+    dropCount:
+      list:
+      - item: 3
+        weight: 10
+      - item: 2
+        weight: 4
+      - item: 4
+        weight: 2
+  - prefab: {fileID: 505188371611155566, guid: 6e95e61356366044e99c01e5840bf2d8, type: 3}
+    spriteBased: 1
+    instances:
+    - {fileID: 1799733993, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -1109684203, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -486236314, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -2040877387, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    interactable: 0
+    outlines: []
+    colorBased: 1
+    isAdditive: 0
+    isShadowed: 1
+    probability: 0.136
+    shadowLength: 0.27
+    isDrop: 0
+    drop: {fileID: 11400000, guid: 285912afb02f8ae479250450e98b8082, type: 2}
+    dropCount:
+      list:
+      - item: 3
+        weight: 10
+      - item: 2
+        weight: 4
+      - item: 4
+        weight: 2
+  - prefab: {fileID: 505188371611155566, guid: c702963d5ef3e3840a76048ab5578512, type: 3}
+    spriteBased: 1
+    instances:
+    - {fileID: 232552527, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: 1093990978, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    interactable: 0
+    outlines: []
+    colorBased: 1
+    isAdditive: 0
+    isShadowed: 1
+    probability: 0.136
+    shadowLength: 0.15
+    isDrop: 0
+    drop: {fileID: 11400000, guid: 285912afb02f8ae479250450e98b8082, type: 2}
+    dropCount:
+      list:
+      - item: 1
+        weight: 10
+      - item: 2
+        weight: 4
+  - prefab: {fileID: 6807209377695208031, guid: f029f9527150bd94e8ecbcf42a5958b8, type: 3}
+    spriteBased: 1
+    instances:
+    - {fileID: 936620967, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: 976644275, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -2019850477, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    interactable: 0
+    outlines: []
+    colorBased: 0
+    isAdditive: 1
+    isShadowed: 0
+    probability: 0.089
+    shadowLength: 0
+    isDrop: 1
+    drop: {fileID: 11400000, guid: fbfecb5e5a740c5468937a9421186f6c, type: 2}
+    dropCount:
+      list:
+      - item: 1
+        weight: 4
+      - item: 2
+        weight: 2
+  mainThreshold: 0.455
+  waterThresholdOffset: 0.048
+  inverseWaterThresh: 0
+  grassThresholdOffset: 0.469
+  inverseGrassThresh: 1
+  offset: {x: -1, y: -1}
+  modulo: {x: 2, y: 2}
+  scale: {x: 1, y: 1}
+  isSolid: 1

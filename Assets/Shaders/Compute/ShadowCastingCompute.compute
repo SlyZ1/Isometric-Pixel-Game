@@ -1,0 +1,238 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain  
+//kernels are like methods
+
+struct LightData
+{ 
+      float x;
+      float y;
+      float radius;  
+      bool castsShadows;
+}; 
+struct ShadowData
+{ 
+    float2 vertices[8];
+    float2 pos;
+    float shadowLength; 
+}; 
+// RWStructuredBuffer<LightData> lightPositions; 
+RWTexture2D <float4> Result;  
+
+StructuredBuffer <LightData> lightDataInputReadOnly;
+StructuredBuffer <ShadowData> shadowDataInputReadOnly;
+
+int numLights;
+int numShadows;  
+ 
+float bottomLeftx;
+float bottomLefty; 
+
+float baseSunLight; 
+float relativeShadowLengthToNormal; 
+float2 sunAngle; 
+
+float maxShadowAlpha;
+
+float2 shadowTextureDims;
+float2 screenTileDims;
+   
+[numthreads(5,5,1)]  
+void CSMain (uint3 id : SV_DispatchThreadID)  
+{      
+
+    //if you want this to work with diff camera size, you'll wanna 
+
+    int2 canvasPos = id.xy;  //goes from 0,0 to 400,950 or whatever the resolution is 
+    float2 pixelOnScreen = canvasPos;
+
+    pixelOnScreen.x /= shadowTextureDims.x;
+    pixelOnScreen.y /= shadowTextureDims.y;
+
+    pixelOnScreen.x *= screenTileDims.x;
+    pixelOnScreen.y *= screenTileDims.y; 
+
+    float2 worldPos = (pixelOnScreen) + float2(bottomLeftx, bottomLefty);
+    float3 upwardVector = float3(0.0, 0.0, 1.0); //used in our cross product later
+
+    bool isShadowed = false;
+    float totalLight = baseSunLight; //startDark
+     
+  
+    for(int colliderNum = 0; colliderNum < numShadows; colliderNum++)
+    { 
+        float2 sunPower = sunAngle * (shadowDataInputReadOnly[colliderNum].shadowLength * relativeShadowLengthToNormal);
+
+        float2 colliderCenterPos = shadowDataInputReadOnly[colliderNum].pos;
+        float2 projectedColliderCenterPos = colliderCenterPos + sunPower;
+        float2 centerOfShadow = (colliderCenterPos  )  + (sunPower/ 2.0);
+        float3 pointToCenter = float3(centerOfShadow - worldPos,0) ;
+
+        if(length(centerOfShadow - worldPos) < length(sunPower) * shadowDataInputReadOnly[colliderNum].shadowLength * 3 )
+        {  
+
+            float2 leftmostVertex; 
+            float2 rightmostVertex; //left and right are arbitrary depending on placement, could be topmost and bottommost  
+ 
+            float leftmostAngle = 0;
+            float rightmostAngle = 0;
+
+            for(int vertexNum = 0; vertexNum < 8; vertexNum++)
+            { 
+                
+                //ensure the vertices are nonzero
+                if(shadowDataInputReadOnly[colliderNum].vertices[vertexNum].x && shadowDataInputReadOnly[colliderNum].vertices[vertexNum].y)
+                {
+                    float2 thisVertexPos =  shadowDataInputReadOnly[colliderNum].vertices[vertexNum];
+                    float2 thisVertexProjectedPos =  thisVertexPos + sunPower; 
+
+                    float3 pointToVertex = float3(thisVertexPos - worldPos, 0) ;
+                    float3 pointToVertexProjected = float3(thisVertexProjectedPos - worldPos, 0) ;
+
+                    float3 crossProduct = cross(pointToVertex, pointToCenter);
+                    float3 crossProductProjected = cross( pointToVertexProjected,pointToCenter);
+                    if(crossProduct.z < 0)
+                    {//then it's on one side    
+                        float thisAngle = acos(dot(pointToCenter, pointToVertex)/(length(pointToCenter) * length(pointToVertex)) );
+                        leftmostAngle = max(leftmostAngle, thisAngle);
+                    }
+                    else
+                    { //it's on the other side   
+                        float thisAngle = acos(dot(pointToCenter, pointToVertex)/(length(pointToCenter) * length(pointToVertex)) );
+                        rightmostAngle = max(rightmostAngle, thisAngle);
+                         
+                    }
+                     if(crossProductProjected.z < 0) //we do it again with the projected shadow too 
+                    {//then it's on one side    
+                        float thisAngle = acos(dot(pointToCenter, pointToVertexProjected)/(length(pointToCenter) * length(pointToVertexProjected)) );
+                        leftmostAngle = max(leftmostAngle, thisAngle);
+                    }
+                    else
+                    { //it's on the other side   
+                        float thisAngle = acos(dot(pointToCenter, pointToVertexProjected)/(length(pointToCenter) * length(pointToVertexProjected)) );
+                        rightmostAngle = max(rightmostAngle, thisAngle);
+                    } 
+                }
+
+            }    
+
+            float2  posToLeftmostVertex = leftmostVertex - worldPos;
+            float2  posToRightmostVertex = rightmostVertex - worldPos;
+  
+            if(leftmostAngle + rightmostAngle > 3.14159265) isShadowed = true; 
+        } 
+    }   
+    if(isShadowed) //if the spot is not shadowed from this light,  add our light value to the mix
+    {
+        totalLight = 0; 
+    }
+
+ 
+
+
+
+
+
+    for(int lightNum = 0; lightNum < numLights; lightNum++)
+    { 
+        LightData thisLight = lightDataInputReadOnly[lightNum];
+        float2 lightPos = float2(thisLight.x, thisLight.y);
+        float dist = length(lightPos-worldPos);
+        float lightRadius = thisLight.radius; 
+        isShadowed = false;
+
+ 
+        if(dist < lightRadius) //if it's far away, don't worry about it  
+        {    
+            if(thisLight.castsShadows)
+            { 
+                float3 vectorToLight = float3(lightPos-worldPos, 0); 
+                float3 perpindicularVector = cross(vectorToLight, upwardVector); 
+
+                // perpindicularVector = normalize(perpindicularVector);
+                
+                for(int colliderNum = 0; colliderNum < numShadows; colliderNum++)
+                { 
+                    //only worry about the collider if it's close to us
+                    float2 lightToCollider = shadowDataInputReadOnly[colliderNum].pos - lightPos;
+                    float lightDistFromCollider = length(lightToCollider);
+                    if(lightDistFromCollider < lightRadius)
+                    {
+
+                        float minDot = 10000000; //sloppy
+                        float maxDot = 0; //sloppy
+
+                        float closestDistanceFromLightToAVertex = 100000;
+                        float closestDistanceFromMeToAVertex = 100000;
+        
+                        //get the vector perpindicular to the vector pointing at the light via a cross product in either direction
+                        for(int vertexNum = 0; vertexNum < 8; vertexNum++)
+                        { 
+                    //ensure the vertices are nonzero
+                            if(shadowDataInputReadOnly[colliderNum].vertices[vertexNum].x && shadowDataInputReadOnly[colliderNum].vertices[vertexNum].y)
+                            {
+                                float2 thisVertexPos =  shadowDataInputReadOnly[colliderNum].vertices[vertexNum];
+                                float2 pointToVertex = thisVertexPos-worldPos;
+
+                                float distToVertex = length(pointToVertex);
+            
+                                float dotProduct = dot( perpindicularVector,  (pointToVertex) );
+                                minDot = min(minDot, dotProduct);
+                                maxDot = max(maxDot, dotProduct);
+
+                                float2 lightToVertex = lightPos - thisVertexPos; 
+                                closestDistanceFromLightToAVertex = min(closestDistanceFromLightToAVertex, length(lightToVertex));
+                                closestDistanceFromMeToAVertex = min(closestDistanceFromMeToAVertex, distToVertex);
+                            }
+                        }   
+                        // Result[canvasPos] = float4(minDot ,0.0,0.0,1.0); //turn red
+
+                        //since the vector from the light we chose was perpindicular, the dot product to the light is 0.
+                        //if the light angle is between  the min and  the max, AND the light distance is FURTHER than the closest vertex distance, set the added light to 0
+                        
+                        //  Result[canvasPos] = float4( minDot,maxDot,0.0,1.0); //turn red
+                        
+                    
+                    
+                        if(minDot < 0 
+                        && maxDot > 0 
+                        &&  dist > lightDistFromCollider
+                        // &&   lightDistFromCollider > length(shadowDataInputReadOnly[colliderNum].pos - worldPos)   
+                        // &&  dist > closestDistanceFromLightToAVertex // if we're blocked
+                    
+                        && dot(lightToCollider, vectorToLight) < 0
+                        &&  dist > closestDistanceFromMeToAVertex)
+                        // && closestDistanceFromMeToAVertex <  shadowDataInputReadOnly[colliderNum].shadowLength) //UNCOMMENT THIS TO RE IMPLMEMENT SHADOW
+                        {
+                            // addedLightFromThisLight = 0;
+                            isShadowed = true;
+                        }
+                        else
+                        { 
+                            // addedLightFromThisLight = newLightVal;  
+                        }
+                        //else, add the newlightval to the added light from this light
+                    }
+
+
+                }    
+            }
+            if(!isShadowed) //if the spot is not shadowed from this light,  add our light value to the mix
+            {
+
+                float normalizedDistance = max(min( dist/((float)lightRadius), 1.0),0.0);   
+                float newLightVal =  1 - (normalizedDistance * normalizedDistance* normalizedDistance* normalizedDistance* normalizedDistance* normalizedDistance* normalizedDistance* normalizedDistance); //high when close, low when far
+
+                newLightVal = lerp(0,newLightVal, 1-(baseSunLight / 4)); //this 4 here alters how much the sunlgight takes over compared to the otehr lights
+                //so when it's daytime, we want this value to remain unchanged. We want the 0's to remain zeroes, from the sunlight shadoes
+                //when it's nighttime, we want this light to be here
+                totalLight = max( totalLight, newLightVal); //without this, they make a weird overlap   
+            }
+        }   
+    }  
+    
+    float pixelAlpha = 1-max(min(totalLight, 1.0), maxShadowAlpha)  ; //add it to the old val and clamp to 0 and 1 
+
+    Result[canvasPos] = float4(0.0,0.0,0.0,pixelAlpha); 
+} 
+
+ 

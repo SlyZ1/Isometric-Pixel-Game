@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7402582b0e893e438cbe86bfaf39647, type: 3}
+  m_Name: LoneTree
+  m_EditorClassIdentifier: 
+  variations:
+  - prefab: {fileID: 505188371611155566, guid: 6e95e61356366044e99c01e5840bf2d8, type: 3}
+    spriteBased: 1
+    instances:
+    - {fileID: -1404674599, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: 1748167376, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: 1565873979, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -185874298, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    interactable: 0
+    outlines: []
+    colorBased: 1
+    isAdditive: 0
+    isShadowed: 1
+    probability: 1
+    shadowLength: 0.27
+    isDrop: 0
+    drop: {fileID: 0}
+    dropCount:
+      list: []
+  - prefab: {fileID: 505188371611155566, guid: 6e95e61356366044e99c01e5840bf2d8, type: 3}
+    spriteBased: 1
+    instances:
+    - {fileID: 1799733993, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -1109684203, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -486236314, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    - {fileID: -2040877387, guid: 15ae60db062041b4c8c7a4871866b473, type: 3}
+    interactable: 0
+    outlines: []
+    colorBased: 1
+    isAdditive: 0
+    isShadowed: 1
+    probability: 0.136
+    shadowLength: 0.27
+    isDrop: 0
+    drop: {fileID: 0}
+    dropCount:
+      list: []
+  mainThreshold: 0.005
+  waterThresholdOffset: 0
+  inverseWaterThresh: 0
+  grassThresholdOffset: 0.568
+  inverseGrassThresh: 0
+  offset: {x: -1, y: -1}
+  modulo: {x: 2, y: 2}
+  scale: {x: 1, y: 1}
+  isSolid: 1

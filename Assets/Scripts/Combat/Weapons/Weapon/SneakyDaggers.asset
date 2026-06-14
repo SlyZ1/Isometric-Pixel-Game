@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25a5126a63439a947b637cd1079630a6, type: 3}
+  m_Name: SneakyDaggers
+  m_EditorClassIdentifier: 
+  attacks1:
+  - type: {fileID: 11400000, guid: 800c5ca1502f2814bb20f6c998878fbc, type: 2}
+    range: 2
+    directionOffset: 0
+    dispersion: 0
+  coolDown1: 0.6
+  isSpammable1: 1
+  attacks2:
+  - type: {fileID: 11400000, guid: 690cda22dc568d94f96d0a79f6cf48e5, type: 2}
+    range: 0.5
+    directionOffset: 0
+    dispersion: 0
+  - type: {fileID: 11400000, guid: 690cda22dc568d94f96d0a79f6cf48e5, type: 2}
+    range: 0.5
+    directionOffset: -180
+    dispersion: 0
+  coolDown2: 1.5
+  isSpammable2: 0
+  attacks3: []
+  coolDown3: 3
+  isSpammable3: 0
