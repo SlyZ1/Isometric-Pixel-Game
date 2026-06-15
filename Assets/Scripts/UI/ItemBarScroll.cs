@@ -295,7 +295,7 @@ public class ItemBarScroll : NetworkBehaviour
                 ushort hItemId = holdingItem == null ? ushort.MaxValue : holdingItem.id;
 
                 UpdateItemState(holdingItem, invItem.item, NetworkManager.Singleton.LocalClientId);
-                UpdateHoldServerRpc(hItemId, invItem.item.id, (byte)NetworkManager.Singleton.LocalClientId);
+                //UpdateHoldServerRpc(hItemId, invItem.item.id, (byte)NetworkManager.Singleton.LocalClientId);
             }
 
             holdingItem = invItem.item;

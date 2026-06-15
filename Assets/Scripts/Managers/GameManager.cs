@@ -42,6 +42,22 @@ public class GameManager : NetworkBehaviour
 
     public static GameManager instance { get; private set; }
 
+    private void Awake()
+    {
+        if(instance != null && instance != this)
+        {
+            Destroy(instance);
+        }
+        else
+        {
+            instance = this;
+        }
+
+        screen = new Vector2Int(Screen.width, Screen.height);
+        Physics2D.queriesHitTriggers = true;
+        Physics.queriesHitTriggers = true;
+    }
+
     public override void OnNetworkSpawn()
     {
         isConnected = true;
@@ -259,23 +275,6 @@ public class GameManager : NetworkBehaviour
 
             plainGen.propChunks[chunk][prop.pos] = prop;
         }
-    }
-
-
-    private void Awake()
-    {
-        if(instance != null && instance != this)
-        {
-            Destroy(instance);
-        }
-        else
-        {
-            instance = this;
-        }
-
-        screen = new Vector2Int(Screen.width, Screen.height);
-        Physics2D.queriesHitTriggers = true;
-        Physics.queriesHitTriggers = true;
     }
 
 

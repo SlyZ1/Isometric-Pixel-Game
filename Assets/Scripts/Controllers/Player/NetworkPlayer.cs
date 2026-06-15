@@ -58,8 +58,8 @@ public class NetworkPlayer : NetworkBehaviour
         else
         {
             playerName.text = GameManager.instance.playerName;
-            GameManager.instance.SendPlayerNameServerRpc((byte)GameManager.instance.playerId, playerName.text);
-            EnemyManager.instance.pgm.target = transform;
+            //GameManager.instance.SendPlayerNameServerRpc((byte)GameManager.instance.playerId, playerName.text);
+            //EnemyManager.instance.pgm.target = transform;
             _camera.GetComponent<CameraSnapping>().player = transform;
             GameManager.instance.playersInitialized.Invoke();
         }
